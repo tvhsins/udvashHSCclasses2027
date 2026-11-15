@@ -6,6 +6,7 @@
 <title>Course Archive</title>
 <style>
 :root{
+  color-scheme:light;
   --bg:#f6f7f9;--surf:#ffffff;--well:#f9fafb;--soft:#f2f4f7;
   --bd:#eaecf0;--bd-in:#d0d5dd;--bd-div:#f2f4f7;
   --sh:0 1px 2px rgba(16,24,40,.04);
@@ -15,6 +16,7 @@
   --r:14px;--font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif
 }
 :root[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#090a0d;--surf:#111318;--well:#171a21;--soft:#1e222b;
   --bd:#222630;--bd-in:#323846;--bd-div:#1b1e27;
   --sh:0 1px 3px rgba(0,0,0,.45);
@@ -25,7 +27,8 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 var(--font);-webkit-font-smoothing:antialiased}
-button,input{font:inherit;color:inherit}
+button,input,select{font:inherit;color:inherit}
+:root[data-theme="dark"] select option,:root[data-theme="dark"] select optgroup{background:var(--surf);color:var(--fg)}
 button{cursor:pointer;border:none;background:none;padding:0}
 svg{display:block;flex-shrink:0}
 
@@ -108,16 +111,16 @@ svg{display:block;flex-shrink:0}
 #q::-webkit-search-cancel-button{-webkit-appearance:none}
 .clr{position:absolute;right:5px;width:22px;height:22px;border-radius:50%;color:var(--mut);display:none;place-items:center}
 .clr.on{display:grid}.clr:hover{background:var(--soft);color:var(--fg)}
-.chap-sel{height:34px;max-width:230px;padding:0 10px;border:1px solid var(--bd-in);border-radius:8px;background:var(--surf);color:var(--fg);font-size:12.5px;font-weight:550;box-shadow:var(--sh);cursor:pointer;text-overflow:ellipsis;outline:none;transition:border-color .15s,background .15s,color .15s}
-.chap-sel:focus{border-color:var(--blue)}
-.chap-sel.on{border-color:var(--blue);background:var(--blue-soft);color:var(--blue);font-weight:600}
+.chap-sel,.flt-sel{height:34px;padding:0 10px;border:1px solid var(--bd-in);border-radius:8px;background:var(--surf);color:var(--fg);font-size:12.5px;font-weight:550;box-shadow:var(--sh);cursor:pointer;text-overflow:ellipsis;outline:none;transition:border-color .15s,background .15s,color .15s}
+.chap-sel{max-width:230px}
+.flt-sel{max-width:190px;min-width:0}
+.chap-sel:focus,.flt-sel:focus{border-color:var(--blue)}
+.chap-sel.on,.flt-sel.on{border-color:var(--blue);background:var(--blue-soft);color:var(--blue);font-weight:600}
+.chap-sel:disabled,.flt-sel:disabled{opacity:.52;cursor:not-allowed}
+.flt-sel[hidden],.qbar-pills[hidden]{display:none}
 #bm-btn.on{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
 .qbar{padding:0 18px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.qbar-pills{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.qchip{height:27px;padding:0 10px;border:1px solid var(--bd);border-radius:999px;background:var(--well);font-size:12px;font-weight:500;color:var(--fg2);display:inline-flex;align-items:center;gap:5px;transition:border-color .12s,background .12s,color .12s}
-.qchip:hover{border-color:var(--bd-in);color:var(--fg)}
-.qchip.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);font-weight:600}
-.qsep{width:1px;height:16px;background:var(--bd);margin:0 2px}
+.qbar-pills{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}
 .qtokens{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--mut)}
 .ptok{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;background:var(--blue-soft);color:var(--blue);font-weight:600;font-size:11.5px}
 .qhint{font-size:11.5px;color:var(--mut)}
@@ -239,14 +242,19 @@ footer{padding:16px 24px 0;display:flex;justify-content:space-between;align-item
   .subj-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .tbl-card{margin:0 12px}
   .tbl-bar{padding:12px 14px;gap:10px}
-  .qbar{padding:0 14px 10px}
+  .qbar{padding:0 14px 12px;gap:0}
+  .qbar.mob-empty{display:none}
+  .qbar-pills{width:100%;gap:8px}
+  .qtokens{display:none}
+  .qtokens.has-tok{display:flex;margin-top:8px}
   .qhint{display:none}
   .tbl-bar-l{flex:1;min-width:0}
   .tbl-bar-r{flex:1 1 100%;min-width:0;display:flex;gap:8px;justify-content:stretch;flex-wrap:wrap}
   .search{flex:1 1 200px;max-width:none;min-width:0}
   #q{height:38px;font-size:16px}
-  .chap-sel,#bm-btn{height:38px;flex-shrink:0}
+  .chap-sel,.flt-sel,#bm-btn{height:38px;flex-shrink:0}
   .chap-sel{flex:1;max-width:none;min-width:140px}
+  .flt-sel{flex:1 1 0;max-width:none;min-width:0}
   .thead{display:none}
   .trow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px;padding:14px}
   .c-no,.c-cat{display:none}
@@ -364,14 +372,9 @@ footer{padding:16px 24px 0;display:flex;justify-content:space-between;align-item
         </div>
 
         <div class="qbar" id="qbar">
-          <div class="qbar-pills">
-            <button class="qchip on" data-paper="0">All Papers</button>
-            <button class="qchip" data-paper="1">1st Paper</button>
-            <button class="qchip" data-paper="2">2nd Paper</button>
-            <span class="qsep" aria-hidden="true"></span>
-            <button class="qchip" id="f-reg" data-kind="reg">Regular</button>
-            <button class="qchip" id="f-ps" data-kind="ps">Problem Solving</button>
-            <button class="qchip" id="f-other" data-kind="other">Free &amp; Guideline</button>
+          <div class="qbar-pills" id="qbar-filters">
+            <select class="flt-sel" id="paper-sel" aria-label="Filter by paper"><option value="0">All Papers</option></select>
+            <select class="flt-sel" id="kind-sel" aria-label="Filter by class type"><option value="">All Types</option></select>
           </div>
           <div class="qtokens" id="qtokens"></div>
         </div>
@@ -1087,41 +1090,142 @@ function drawSubjects(pool) {
   subjLbl.classList.toggle('on', !!st.subj);
 }
 
+function scopePool(pq) {
+  return DATA.filter(c =>
+    st.courses.has(c.co) &&
+    (!st.subj || c.s === st.subj) &&
+    bmOk(c) &&
+    matchAndScore(c, pq) > 0
+  );
+}
+
+function drawPaperFilter(scope, pq) {
+  const sel = $('paper-sel');
+  let scopeHasPapers = false;
+  let cnt1 = 0, cnt2 = 0;
+  for (const c of scope) {
+    if (c._paper === 1 || c._paper === 2 || c._paper === 3) scopeHasPapers = true;
+    if (!kindOk(c)) continue;
+    if (c._paper === 1 || c._paper === 3) cnt1++;
+    if (c._paper === 2 || c._paper === 3) cnt2++;
+  }
+  if (!scopeHasPapers) {
+    st.paper = 0;
+    sel.hidden = true;
+    sel.disabled = false;
+    sel.innerHTML = '<option value="0">All Papers</option>';
+    sel.value = '0';
+    sel.classList.remove('on');
+    return;
+  }
+  sel.hidden = false;
+  if ((st.paper === 1 && !cnt1) || (st.paper === 2 && !cnt2)) st.paper = 0;
+  const noSplit = !cnt1 && !cnt2;
+  const lockedBySearch = !!(pq && pq.paper);
+  sel.disabled = noSplit || lockedBySearch;
+  sel.title = lockedBySearch ? 'Paper set in search query' : noSplit ? 'No 1st/2nd paper split in this filter' : 'Filter by paper';
+  sel.innerHTML = '<option value="0">All Papers</option>' +
+    (cnt1 ? `<option value="1">1st Paper (${cnt1})</option>` : '') +
+    (cnt2 ? `<option value="2">2nd Paper (${cnt2})</option>` : '');
+  sel.value = String(st.paper);
+  sel.classList.toggle('on', st.paper !== 0);
+}
+
+function drawKindFilter(scope, pq) {
+  const sel = $('kind-sel');
+  const scopeKinds = new Set();
+  const counts = { reg: 0, ps: 0, other: 0 };
+  for (const c of scope) {
+    scopeKinds.add(c._kind);
+    if (!paperOk(c, pq)) continue;
+    counts[c._kind]++;
+  }
+  if (scopeKinds.size <= 1) {
+    st.kind = '';
+    sel.hidden = true;
+    sel.disabled = false;
+    sel.innerHTML = '<option value="">All Types</option>';
+    sel.value = '';
+    sel.classList.remove('on');
+    return;
+  }
+  sel.hidden = false;
+  const activeKinds = ['reg', 'ps', 'other'].filter(k => counts[k] > 0);
+  const singleKind = activeKinds.length <= 1;
+  if (singleKind || (st.kind && !counts[st.kind])) st.kind = '';
+  sel.disabled = singleKind;
+  sel.title = singleKind ? 'Only one class type in this filter' : 'Filter by class type';
+  const labels = { reg: 'Regular', ps: 'Problem Solving', other: 'Free & Guideline' };
+  sel.innerHTML = '<option value="">All Types</option>' +
+    (singleKind ? '' : activeKinds.map(k => `<option value="${k}">${labels[k]} (${counts[k]})</option>`).join(''));
+  sel.value = st.kind;
+  sel.classList.toggle('on', !!st.kind);
+}
+
 function drawChapters(pq) {
   const pool = chapPool(pq);
   const map = new Map();
   for (const c of pool) {
     const ch = (c.c || '').trim();
     if (!ch) continue;
-    const cur = map.get(ch);
+    const sp = c._kind !== 'reg' || /\b(?:problem\s*solving|free\s*class|orientation|guideline|seminar)\b|\u09ab\u09cd\u09b0\u09bf\s*\u0995\u09cd\u09b2\u09be\u09b8/i.test(ch);
+    const p = (c._paper === 1 || c._paper === 2) ? c._paper : 0;
     const num = c._chap != null ? c._chap : 9999;
-    if (cur) { cur.cnt++; cur.min = Math.min(cur.min, num); }
-    else map.set(ch, { cnt: 1, min: num });
+    const cur = map.get(ch);
+    if (cur) {
+      cur.cnt++;
+      cur.min = Math.min(cur.min, num);
+      cur.special = cur.special || sp;
+      if (p && !cur.paper) cur.paper = p;
+      else if (p && cur.paper && cur.paper !== p) cur.paper = 3;
+    } else {
+      map.set(ch, { cnt: 1, min: num, special: sp, paper: p });
+    }
   }
   if (st.chap && !map.has(st.chap)) st.chap = '';
-  const entries = [...map.entries()].sort((a, b) => (a[1].min - b[1].min) || a[0].localeCompare(b[0]));
+  const sortFn = (a, b) => (a[1].min - b[1].min) || a[0].localeCompare(b[0]);
+  const groups = { p1: [], p2: [], gen: [], sp: [] };
+  for (const entry of map.entries()) {
+    const info = entry[1];
+    if (info.special) groups.sp.push(entry);
+    else if (info.paper === 1) groups.p1.push(entry);
+    else if (info.paper === 2) groups.p2.push(entry);
+    else groups.gen.push(entry);
+  }
+  Object.values(groups).forEach(arr => arr.sort(sortFn));
   const sel = $('chap-sel');
   const clip = s => s.length > 48 ? s.slice(0, 47) + '\u2026' : s;
-  sel.innerHTML = `<option value="">All Chapters (${entries.length})</option>` +
-    entries.map(([ch, info]) => `<option value="${esc(ch)}">${esc(clip(ch))} (${info.cnt})</option>`).join('');
+  const optHtml = ([ch, info]) => `<option value="${esc(ch)}">${esc(clip(ch))} (${info.cnt})</option>`;
+  const sections = [
+    ['1st Paper Chapters', groups.p1],
+    ['2nd Paper Chapters', groups.p2],
+    ['Chapters', groups.gen],
+    ['Other Sessions', groups.sp],
+  ].filter(([, arr]) => arr.length > 0);
+  const useGroups = sections.length > 1 || (sections.length === 1 && sections[0][0] === 'Other Sessions');
+  const body = sections.map(([lbl, arr]) => {
+    const opts = arr.map(optHtml).join('');
+    return useGroups ? `<optgroup label="${lbl}">${opts}</optgroup>` : opts;
+  }).join('');
+  sel.innerHTML = `<option value="">All Chapters</option>${body}`;
+  sel.disabled = map.size === 0;
   sel.value = st.chap;
   sel.classList.toggle('on', !!st.chap);
 }
 
 function drawQbar(pq) {
-  document.querySelectorAll('#qbar [data-paper]').forEach(b => {
-    b.classList.toggle('on', Number(b.dataset.paper) === st.paper);
-  });
-  document.querySelectorAll('#qbar [data-kind]').forEach(b => {
-    b.classList.toggle('on', b.dataset.kind === st.kind);
-  });
+  const filtersHidden = $('paper-sel').hidden && $('kind-sel').hidden;
+  $('qbar-filters').hidden = filtersHidden;
+  $('qbar').classList.toggle('mob-empty', filtersHidden && !pq.chips.length);
   const bmBtn = $('bm-btn');
   bmBtn.textContent = bmSet.size ? `\u2605 Starred (${bmSet.size})` : '\u2605 Starred';
   bmBtn.classList.toggle('on', st.bmOnly);
+  const tokEl = $('qtokens');
+  tokEl.classList.toggle('has-tok', pq.chips.length > 0);
   if (pq.chips.length) {
-    $('qtokens').innerHTML = '<span>Parsed:</span>' + pq.chips.map(ch => `<span class="ptok">${esc(ch)}</span>`).join('');
+    tokEl.innerHTML = '<span>Parsed:</span>' + pq.chips.map(ch => `<span class="ptok">${esc(ch)}</span>`).join('');
   } else {
-    $('qtokens').innerHTML = '<span class="qhint">Try <code>ch 4</code> <code>lec 2</code> <code>hm-39</code> <code>ex 3.1</code> <code>-free</code></span>';
+    tokEl.innerHTML = '<span class="qhint">Try <code>ch 4</code> <code>lec 2</code> <code>hm-39</code> <code>ex 3.1</code> <code>-free</code></span>';
   }
 }
 
@@ -1180,8 +1284,19 @@ function updateSummary(pool, shownCount, pq) {
   $('foot-range').textContent = `Showing ${shownCount} of ${pool.length} classes`;
 }
 
-function draw() {
+function draw(pref = '') {
   const pq = parseQuery(st.q);
+  if (st.subj && !DATA.some(c => st.courses.has(c.co) && bmOk(c) && matchAndScore(c, pq) > 0 && c.s === st.subj)) {
+    st.subj = '';
+  }
+  const scope = scopePool(pq);
+  if (pref === 'paper') {
+    drawKindFilter(scope, pq);
+    drawPaperFilter(scope, pq);
+  } else {
+    drawPaperFilter(scope, pq);
+    drawKindFilter(scope, pq);
+  }
   drawChapters(pq);
   const pool = basePool(pq);
   drawCourses();
@@ -1267,19 +1382,17 @@ $('bm-btn').onclick = () => {
   track('filter_change', { filter_type: 'starred_only', filter_value: st.bmOnly ? 'on' : 'off' });
   draw();
 };
-$('qbar').onclick = e => {
-  const b = e.target.closest('.qchip'); if (!b) return;
-  if (b.dataset.paper !== undefined) {
-    const p = Number(b.dataset.paper);
-    st.paper = p === 0 ? 0 : (st.paper === p ? 0 : p);
-    SESS.filtersUsed++;
-    track('filter_change', { filter_type: 'paper', filter_value: st.paper ? String(st.paper) : 'All' });
-  } else if (b.dataset.kind) {
-    st.kind = st.kind === b.dataset.kind ? '' : b.dataset.kind;
-    SESS.filtersUsed++;
-    track('filter_change', { filter_type: 'class_kind', filter_value: st.kind || 'All' });
-  }
-  draw();
+$('paper-sel').onchange = e => {
+  st.paper = Number(e.target.value) || 0;
+  SESS.filtersUsed++;
+  track('filter_change', { filter_type: 'paper', filter_value: st.paper ? String(st.paper) : 'All' });
+  draw('paper');
+};
+$('kind-sel').onchange = e => {
+  st.kind = e.target.value || '';
+  SESS.filtersUsed++;
+  track('filter_change', { filter_type: 'class_kind', filter_value: st.kind || 'All' });
+  draw('kind');
 };
 $('list').onclick = e => {
   const act = e.target.closest('a.act');
