@@ -400,9 +400,43 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 const escRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const THM_KEY = 'class-shelf-theme';
 const BM_KEY = 'class-shelf-bm';
+const GA_ID = "G-7RK0FL68YJ";
+const BY_K = new Map(DATA.map(c => [c.k, c]));
 let bmSet = new Set();
 try { bmSet = new Set(JSON.parse(localStorage.getItem(BM_KEY) || '[]')); } catch (e) {}
 function saveBm() { try { localStorage.setItem(BM_KEY, JSON.stringify([...bmSet])); } catch (e) {} }
+
+const isHosted = /^https?:$/i.test(location.protocol || '') &&
+  !/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/i.test(location.hostname || '');
+let track = () => {};
+if (GA_ID && isHosted) {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', GA_ID, { page_title: document.title, page_path: location.pathname || '/' });
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_ID);
+  if (document.head) document.head.appendChild(s);
+  track = (name, params = {}) => { try { window.gtag('event', name, params); } catch (e) {} };
+}
+let _searchTimer = null, _lastSearchTracked = '';
+function scheduleSearchTrack(qRaw, resultCount) {
+  clearTimeout(_searchTimer);
+  const q = (qRaw || '').trim();
+  if (q.length < 2) { if (!q) _lastSearchTracked = ''; return; }
+  if (q === _lastSearchTracked) return;
+  _searchTimer = setTimeout(() => {
+    _lastSearchTracked = q;
+    track('search', {
+      search_term: q,
+      results_count: resultCount,
+      subject: st.subj || 'All',
+      paper: st.paper ? String(st.paper) : 'All',
+      class_kind: st.kind || 'All',
+    });
+  }, 850);
+}
 
 const BN_DIG = {'\u09e6':'0','\u09e7':'1','\u09e8':'2','\u09e9':'3','\u09ea':'4','\u09eb':'5','\u09ec':'6','\u09ed':'7','\u09ee':'8','\u09ef':'9'};
 const EN_TO_BN_DIG = '০১২৩৪৫৬৭৮৯';
@@ -960,11 +994,12 @@ function drawQbar(pq) {
 function rowHtml(c, idx, hlRe) {
   const links = [];
   const extAttr = u => /^https?:\/\//i.test(u) ? ' target="_blank" rel="noopener noreferrer"' : '';
-  (c.yt || []).forEach((u, i) => links.push(
-    `<a class="act primary" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${ICON_PLAY}Watch${c.yt.length > 1 ? ' ' + (i + 1) : ''}</a>`
-  ));
-  (c.v || []).forEach(([u, l]) => links.push(`<a class="act" href="${esc(u)}"${extAttr(u)}>${ICON_PLAY}${esc(l)}</a>`));
-  (c.n || []).forEach(([u, l]) => links.push(`<a class="act" href="${esc(u)}"${extAttr(u)}>${ICON_DOC}${esc(l)}</a>`));
+  (c.yt || []).forEach((u, i) => {
+    const lbl = 'Watch' + (c.yt.length > 1 ? ' ' + (i + 1) : '');
+    links.push(`<a class="act primary" data-rtype="youtube" data-rlabel="${esc(lbl)}" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${ICON_PLAY}${lbl}</a>`);
+  });
+  (c.v || []).forEach(([u, l]) => links.push(`<a class="act" data-rtype="video" data-rlabel="${esc(l)}" href="${esc(u)}"${extAttr(u)}>${ICON_PLAY}${esc(l)}</a>`));
+  (c.n || []).forEach(([u, l]) => links.push(`<a class="act" data-rtype="notes" data-rlabel="${esc(l)}" href="${esc(u)}"${extAttr(u)}>${ICON_DOC}${esc(l)}</a>`));
   if (!links.length) links.push(`<span class="no-link">${c.r ? 'No files' : 'Pending'}</span>`);
 
   const si = subjInfo(c.s);
@@ -976,7 +1011,7 @@ function rowHtml(c, idx, hlRe) {
   const starBtn = `<button class="bm-star${starred ? ' on' : ''}" data-k="${esc(c.k)}" title="${starred ? 'Remove star' : 'Star lecture'}" aria-label="${starred ? 'Remove star' : 'Star lecture'}">${starred ? '\u2605' : '\u2606'}</button>`;
   const chVal = (c.c || '').trim();
 
-  return `<article class="trow">
+  return `<article class="trow" data-k="${esc(c.k)}">
     <div class="c-no">${starBtn}<span>${idx + 1}</span></div>
     <div class="c-main">
       <div class="mob-top">
@@ -1037,6 +1072,7 @@ function draw() {
     $('list').innerHTML = v.map((c, idx) => rowHtml(c, idx, hlRe)).join('');
   }
   updateSummary(pool, v.length, pq);
+  scheduleSearchTrack(st.q, v.length);
 }
 
 function resetFilters() {
@@ -1063,33 +1099,73 @@ $('subj-grid').onclick = e => {
   const b = e.target.closest('.schip'); if (!b) return;
   const v = b.dataset.v;
   st.subj = st.subj === v ? '' : v;
+  track('filter_change', { filter_type: 'subject', filter_value: st.subj || 'All' });
   draw();
 };
-$('all-subj').onclick = () => { st.subj = ''; draw(); };
-$('chap-sel').onchange = e => { st.chap = e.target.value; draw(); };
-$('bm-btn').onclick = () => { st.bmOnly = !st.bmOnly; draw(); };
+$('all-subj').onclick = () => {
+  if (st.subj) track('filter_change', { filter_type: 'subject', filter_value: 'All' });
+  st.subj = '';
+  draw();
+};
+$('chap-sel').onchange = e => {
+  st.chap = e.target.value;
+  track('filter_change', { filter_type: 'chapter', filter_value: st.chap || 'All' });
+  draw();
+};
+$('bm-btn').onclick = () => {
+  st.bmOnly = !st.bmOnly;
+  track('filter_change', { filter_type: 'starred_only', filter_value: st.bmOnly ? 'on' : 'off' });
+  draw();
+};
 $('qbar').onclick = e => {
   const b = e.target.closest('.qchip'); if (!b) return;
   if (b.dataset.paper !== undefined) {
     const p = Number(b.dataset.paper);
     st.paper = p === 0 ? 0 : (st.paper === p ? 0 : p);
+    track('filter_change', { filter_type: 'paper', filter_value: st.paper ? String(st.paper) : 'All' });
   } else if (b.dataset.kind) {
     st.kind = st.kind === b.dataset.kind ? '' : b.dataset.kind;
+    track('filter_change', { filter_type: 'class_kind', filter_value: st.kind || 'All' });
   }
   draw();
 };
 $('list').onclick = e => {
+  const act = e.target.closest('a.act');
+  if (act) {
+    const row = act.closest('article.trow');
+    const item = row && BY_K.get(row.dataset.k);
+    track('lecture_open', {
+      resource_type: act.dataset.rtype || 'link',
+      resource_label: act.dataset.rlabel || '',
+      lecture_key: item ? item.k : '',
+      lecture_title: item ? item.t : '',
+      subject: item ? item.s : '',
+      chapter: item ? (item.c || '') : '',
+      course: item ? (item.co || '') : '',
+      lecture_no: item && item.l != null ? item.l : '',
+      link_url: act.getAttribute('href') || '',
+    });
+    return;
+  }
   const sb = e.target.closest('.bm-star');
   if (sb) {
     const k = sb.dataset.k;
     if (bmSet.has(k)) bmSet.delete(k); else bmSet.add(k);
     saveBm();
+    const item = BY_K.get(k);
+    track('bookmark_toggle', {
+      action: bmSet.has(k) ? 'star' : 'unstar',
+      lecture_key: k,
+      lecture_title: item ? item.t : '',
+      subject: item ? item.s : '',
+    });
     draw();
     return;
   }
   const ch = e.target.closest('.c-chap');
   if (ch && ch.dataset.chap) {
     st.chap = st.chap === ch.dataset.chap ? '' : ch.dataset.chap;
+    track('filter_change', { filter_type: 'chapter', filter_value: st.chap || 'All' });
     draw();
   }
 };
@@ -1132,10 +1208,4 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Escape' && document.activeElement === $('q')) { $('q').value = ''; st.q = ''; st.manualSort = false; $('q').blur(); draw(); }
 });
 draw();
-</script>
-<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-K547S74X"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 </script>
